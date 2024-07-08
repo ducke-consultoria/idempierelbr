@@ -129,6 +129,7 @@
 2.1.04.003.0006,Outras Contas a Pagar,,Liability,,No,No,COMMITMENTOFFSET_ACCT,2.1.04.003
 2.1.04.003.0007,Pagamentos não Alocados,,Liability,,No,No,B_PAYMENTSELECT_ACCT,2.1.04.003
 2.1.04.003.0008,Produtos Recebidos e não Faturados,,Liability,,No,No,NOTINVOICEDRECEIPTS_ACCT,2.1.04.003
+2.1.04.003.0009,Conta de valores devidos,,Liability,,No,No,T_Due_Acct,2.1.04.003
 2.1.05,Outros Empréstimos,,Liability,,No,Yes,,2.1
 2.1.05.001,Aportes,,Liability,,No,Yes,,2.1.05
 2.1.05.001.0001,Aportes,,Liability,,No,No,,2.1.05.001
@@ -185,6 +186,7 @@
 3.1.05.001,Outras Receitas de Vendas / Serviços,,Revenue,,No,Yes,,3.1.05
 3.1.05.001.0001,Transitória EF (Entrada de Faturas),,Revenue,,No,No,UNEARNEDREVENUE_ACCT,3.1.05.001
 3.1.05.001.0002,Outras Receitas de Vendas / Serviços,,Revenue,,No,No,P_REVENUE_ACCT,3.1.05.001
+3.1.05.001.0003,LBR_P_RevenueReturn_Acct,Conta de retorno de receita,Revenue,,No,No,LBR_P_RevenueReturn_Acct,3.1.05.001
 3.2,Receitas não Operacionais,,Revenue,,No,Yes,,3
 3.2.01,Outras Receitas,,Revenue,,No,Yes,,3.2
 3.2.01.001,Alienação Bens do Imobilizado,,Revenue,,No,Yes,,3.2.01
