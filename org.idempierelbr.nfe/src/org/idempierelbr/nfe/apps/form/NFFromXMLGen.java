@@ -7,8 +7,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -18,6 +20,7 @@ import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.model.POWrapper;
 import org.adempiere.webui.util.ReaderInputStream;
 import org.compiere.model.MAttachment;
@@ -36,6 +39,7 @@ import org.compiere.model.Query;
 import org.compiere.model.Tax;
 import org.compiere.process.DocAction;
 import org.compiere.util.CLogger;
+import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Trx;
 import org.idempierelbr.base.model.MLBRCFOP;
@@ -481,12 +485,12 @@ public class NFFromXMLGen
 		String where = "IsActive=?";
 		
 		if (documentNo.length() == 11)
-			where += " AND LBR_CPF=?";
+			where += " AND LBR_CPF=? AND AD_Client_ID=?";
 		else
-			where += " AND LBR_CNPJ=?";
+			where += " AND LBR_CNPJ=? AND AD_Client_ID=?";
 
 		Query query =  new Query(Env.getCtx(), table, where, null);
-		query.setParameters(new Object[]{true, documentNo});
+		query.setParameters(new Object[]{true, documentNo, Env.getAD_Client_ID(Env.getCtx())});
 
 		return query.first();
 	}
@@ -664,15 +668,33 @@ public class NFFromXMLGen
 		
 		try {
 			nf.saveEx();
+			trx.commit();
 		} catch (Exception e) {
-			return "Não foi possível gerar a Nota Fiscal.";
+			throw new AdempiereException(e);
 		}
 		
 		// Attach XML File
-		MAttachment attachNFe = nf.createAttachment();
-		attachNFe.setAD_Org_ID(nf.getAD_Org_ID());
-		attachNFe.addEntry(xmlFile);
-		attachNFe.save(trx.getTrxName());
+		{
+			StringBuilder whereClause = new StringBuilder("SELECT AD_Attachment_ID FROM AD_Attachment WHERE AD_Table_ID=?");
+			List<Object> params = new ArrayList<Object>();
+			params.add(nf.Table_ID);
+			if (nf.get_ID() > 0) {
+				whereClause.append(" AND Record_ID=?");
+				whereClause.append(" AND AD_Client_ID=?");
+				params.add(nf.get_ID());
+				params.add(nf.getAD_Client_ID());
+			}
+			int AD_Attachment_ID = DB.getSQLValueEx(trxName, whereClause.toString(), params);
+			MAttachment attachNFe = null;
+			if (AD_Attachment_ID > 0)
+				attachNFe = new MAttachment(nf.getCtx(), AD_Attachment_ID, nf.get_TrxName());
+			else {
+				attachNFe = new MAttachment (nf.getCtx(), nf.Table_ID, nf.get_ID(), nf.get_UUID(), null);
+				attachNFe.setAD_Org_ID(nf.getAD_Org_ID());
+				attachNFe.addEntry(xmlFile);
+				attachNFe.save(trx.getTrxName());
+			}
+		}
 		
 		// Should update/create entries in M_ProductPO ?
 		boolean createProductPO = MSysConfig.getBooleanValue("LBR_PRODUCTPO_WHEN_GEN_NF_FROM_XML",
@@ -1983,3 +2005,4 @@ public class NFFromXMLGen
 	}
 	
 }
+
